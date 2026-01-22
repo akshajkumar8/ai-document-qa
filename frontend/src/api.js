@@ -1,4 +1,4 @@
-const BASE_URL = "https://ai-document-qa-production.up.railway.app";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
 
 async function safeJson(res) {
   const text = await res.text();
