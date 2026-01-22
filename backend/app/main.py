@@ -7,7 +7,6 @@ import uuid
 from dotenv import load_dotenv
 from openai import OpenAI
 from pypdf import PdfReader
-from sentence_transformers import SentenceTransformer
 
 import chromadb
 from chromadb.config import Settings
@@ -31,7 +30,6 @@ CHUNK_OVERLAP = 200
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(CHROMA_DIR, exist_ok=True)
 
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 client = OpenAI()
 
 chroma_client = chromadb.PersistentClient(
@@ -99,6 +97,16 @@ def chunk_pages(pages):
     return chunks
 
 
+def embed_texts(texts: list[str]) -> list[list[float]]:
+    """
+    Lightweight embeddings via OpenAI (no torch / sentence-transformers).
+    Returns one embedding vector per string.
+    """
+    model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    resp = client.embeddings.create(model=model, input=texts)
+    return [item.embedding for item in resp.data]
+
+
 def index_doc_into_chroma(doc_id: str, path: str):
     """
     Extract -> chunk -> embed -> store in Chroma (persistent).
@@ -132,7 +140,10 @@ def index_doc_into_chroma(doc_id: str, path: str):
     collection.delete(where={"doc_id": doc_id})
 
     # Compute embeddings ONCE and persist them
-    embeddings = embedding_model.encode(documents).tolist()
+    try:
+        embeddings = embed_texts(documents)
+    except Exception as exc:
+        return {"error": f"Embedding generation failed: {exc}"}
 
     collection.add(
         ids=ids,
@@ -171,7 +182,10 @@ def retrieve_top_k(doc_id: str, question: str, top_k: int):
 
     Returns list of dicts: {page, text, chunk_index, similarity} sorted by similarity desc.
     """
-    q_emb = embedding_model.encode([question]).tolist()
+    try:
+        q_emb = embed_texts([question])  # shape: [ [dim...] ]
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail={"error": f"Embedding generation failed: {exc}"})
 
     # Ask Chroma for a bit more than top_k so we can dedupe while keeping diversity.
     n_results = max(top_k * 3, top_k)
@@ -276,12 +290,11 @@ async def upload_and_index(file: UploadFile = File(...)):
     try:
         with open(saved_path, "wb") as f:
             f.write(content)
-    except Exception as exc:  # disk / permissions issues
+    except Exception as exc:
         raise HTTPException(status_code=500, detail={"error": f"Failed to save file: {exc}"})
 
     summary = index_doc_into_chroma(doc_id, saved_path)
     if "error" in summary:
-        # Keep the PDF on disk so the user can re-index later if needed.
         raise HTTPException(status_code=400, detail=summary)
 
     return {
@@ -309,28 +322,30 @@ def ask(payload: AskRequest):
     prompt = build_prompt(payload.question, retrieved)
 
     try:
-        response = client.responses.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
-            input=prompt,
-            timeout=20,  # seconds
+            messages=[
+                {"role": "system", "content": "You are a careful, precise assistant."},
+                {"role": "user", "content": prompt},
+            ],
+            timeout=20,
         )
     except Exception as exc:
-        # Surface a clean, standardized error up to the client.
         raise HTTPException(
             status_code=502,
             detail={"error": f"Upstream model error or timeout: {exc}"},
         )
-    answer = response.output_text.strip()
+
+    answer = (response.choices[0].message.content or "").strip()
+
     # Light post-processing so the UI stays clean and readable.
     answer = answer.replace("**", "")
-    # If the model created inline bullets like "- A - B - C", break them onto new lines.
     if " - " in answer and "\n- " not in answer:
         answer = answer.replace(" - ", "\n- ")
 
     pages_used = sorted(set(r["page"] for r in retrieved if r.get("page") is not None))
 
     evidence = []
-    # Show up to two of the top retrieved chunks as human-readable evidence snippets.
     for r in retrieved[:2]:
         evidence.append(
             {
@@ -354,11 +369,8 @@ def delete_doc(doc_id: str):
 
     Safe to call multiple times; returns success even if parts were already removed.
     """
-
-    # Remove all vectors for this document
     collection.delete(where={"doc_id": doc_id})
 
-    # Remove the uploaded PDF if it exists
     pdf_path = os.path.join(UPLOAD_DIR, f"{doc_id}.pdf")
     try:
         if os.path.exists(pdf_path):
