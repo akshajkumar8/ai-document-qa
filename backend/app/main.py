@@ -45,8 +45,9 @@ collection = chroma_client.get_or_create_collection(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
