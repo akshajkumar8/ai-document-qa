@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8001";
+const BASE_URL = "https://ai-document-qa-production.up.railway.app";
 
 async function safeJson(res) {
   const text = await res.text();
