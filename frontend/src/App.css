@@ -1,0 +1,458 @@
+/* =========================
+   Black + White Clean UI
+   (drop-in replacement)
+   ========================= */
+
+:root{
+  --bg: #ffffff;
+  --text: #0b1220;
+  --muted: rgba(11,18,32,.65);
+  --border: rgba(11,18,32,.10);
+  --border2: rgba(11,18,32,.14);
+  --panel: rgba(11,18,32,.03);
+  --card: #ffffff;
+  --shadow: 0 12px 36px rgba(11,18,32,.10);
+  --shadow2: 0 6px 18px rgba(11,18,32,.08);
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 18px;
+  --radius-sm: 14px;
+  --black: #0b1220;
+  --white: #ffffff;
+}
+
+*{ box-sizing: border-box; }
+
+html, body{
+  height: 100%;
+}
+
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
+
+/* ---------- Shell ---------- */
+.appShell{
+  min-height: 100vh;
+  padding: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.panelWrap{
+  width: min(1260px, 96vw);
+  height: min(820px, 92vh);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ---------- Left / Right Panels ---------- */
+.leftPanel{
+  position: relative;
+  padding: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+}
+
+.leftPanelInteractive{
+  cursor: pointer;
+  transition: background .16s ease, box-shadow .16s ease;
+}
+
+.leftPanelInteractive:hover{
+  background: rgba(11,18,32,.035);
+}
+
+.leftPanelDragOver{
+  background: rgba(11,18,32,.04);
+  box-shadow: inset 0 0 0 2px rgba(11,18,32,.10);
+}
+
+.rightPanel{
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--bg);
+}
+
+/* ---------- Cards ---------- */
+.uploadCard,
+.docCard{
+  width: min(520px, 92%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 22px 18px;
+  background: var(--white);
+  box-shadow: var(--shadow2);
+}
+
+.uploadCard{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: none;
+  transition: border-color .16s ease;
+}
+
+.uploadCard:hover{
+  border-color: var(--border2);
+}
+
+.uploadTitle{
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.uploadSub{
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.uploadBtn{
+  margin-top: 4px;
+  padding-inline: 18px;
+}
+
+.fileInputNative{
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.uploadControls{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inlineUploadStatus{
+  margin-top: 0;
+}
+
+.docLabel{
+  font-size: 12px;
+  letter-spacing: .18em;
+  font-weight: 800;
+  opacity: .55;
+  margin-bottom: 8px;
+}
+
+.docName{
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+
+.docStats{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.statLabel{
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.statValue{
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Buttons ---------- */
+.docButtons{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.btn{
+  appearance: none;
+  border: 1px solid var(--border2);
+  background: var(--white);
+  color: var(--black);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.btn:hover{
+  box-shadow: 0 10px 26px rgba(11,18,32,.10);
+  transform: translateY(-1px);
+}
+
+.btn:active{
+  transform: translateY(0px);
+  box-shadow: none;
+}
+
+.evidenceBtn{
+  width: fit-content;
+}
+
+/* Error / muted */
+.error{
+  margin-top: 10px;
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.muted{
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.docTip{
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---------- Chat Header ---------- */
+.chatHeader{
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--border);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Chat Body ---------- */
+.chatBody{
+  padding: 18px 18px 10px;
+  overflow: auto;
+}
+
+.emptyState{
+  color: var(--muted);
+  padding: 10px 6px;
+  font-size: 16px;
+}
+
+.chatList{
+  display: grid;
+  gap: 16px;
+}
+
+/* ---------- Messages ---------- */
+.msgUser{
+  background: var(--black);
+  color: var(--white);
+  border-radius: 20px;
+  padding: 18px 18px;
+  box-shadow: 0 16px 40px rgba(11,18,32,.18);
+}
+
+.msgAiWrap{
+  display: grid;
+  gap: 10px;
+}
+
+.msgAi{
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px 18px;
+  box-shadow: 0 10px 28px rgba(11,18,32,.08);
+}
+
+.msgRole{
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.msgText{
+  font-size: 18px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+/* ---------- Sources Row ---------- */
+.sourcesRow{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 4px;
+}
+
+.sourcesLabel{
+  font-weight: 900;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.sourcesBadges{
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge{
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(11,18,32,.05);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+/* ---------- Evidence ---------- */
+.evidenceCard{
+  background: rgba(11,18,32,.03);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.evidenceTitle{
+  font-weight: 900;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.evidenceRow{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  padding: 12px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(11,18,32,.08);
+  background: var(--white);
+}
+
+.evidencePagePill{
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(11,18,32,.05);
+  font-weight: 900;
+  font-size: 14px;
+  height: fit-content;
+}
+
+.evidenceSnippet{
+  font-size: 16px;
+  line-height: 1.45;
+  color: rgba(11,18,32,.86);
+}
+
+/* ---------- Composer ---------- */
+.chatComposer{
+  border-top: 1px solid var(--border);
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  background: var(--bg);
+}
+
+.chatInput{
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 16px;
+  outline: none;
+  background: var(--white);
+}
+
+.chatInput:focus{
+  border-color: rgba(11,18,32,.25);
+  box-shadow: 0 0 0 4px rgba(11,18,32,.08);
+}
+
+.sendBtn{
+  border: 1px solid var(--black);
+  background: var(--black);
+  color: var(--white);
+  border-radius: 16px;
+  padding: 0 22px;
+  font-weight: 900;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .16s ease;
+  box-shadow: 0 10px 26px rgba(11,18,32,.18);
+}
+
+.sendBtn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(11,18,32,.22);
+}
+
+.sendBtn:active{
+  transform: translateY(0px);
+  box-shadow: 0 10px 26px rgba(11,18,32,.18);
+}
+
+.sendBtn:disabled,
+.chatInput:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* Let grid children shrink so overflow: auto can work */
+.panelWrap {
+  height: min(820px, 92vh); /* keep your existing height */
+}
+
+.rightPanel {
+  min-height: 0; /* CRITICAL for grid scrolling */
+}
+
+.chatBody {
+  min-height: 0;          /* CRITICAL */
+  overflow-y: auto;       /* ensure vertical scroll */
+  overscroll-behavior: contain; /* prevents scroll chaining to the page */
+}
+
+.chatBody {
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px){
+  .panelWrap{
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+  .leftPanel{
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}

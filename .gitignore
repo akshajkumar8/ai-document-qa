@@ -1,0 +1,29 @@
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Python / backend
+backend/.venv/
+venv/
+.env
+__pycache__/
+*.py[cod]
+*.pyo
+
+# App data (PDF uploads and vector store)
+backend/app/data/uploads/
+backend/app/data/chroma/
+
+# OS / editor noise
+.DS_Store
+*.log
+.idea/
+.vscode/
+
+
+
+
+
+
+
