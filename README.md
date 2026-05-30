@@ -142,23 +142,6 @@ Uploaded PDFs are stored in `uploads`, and ChromaDB stores embeddings/vector dat
 
 On platforms like Railway, Render, or other container hosts, local disk may not be permanent unless persistent volumes are configured.
 
-## Deployment notes
-
-The frontend and backend can be deployed separately.
-
-One common setup:
-
-- **Frontend:** Vercel
-- **Backend:** Railway
-
-For that setup:
-
-1. Deploy the FastAPI backend to Railway.
-2. Add backend environment variables in Railway.
-3. Copy the Railway backend URL.
-4. In Vercel, set `VITE_API_BASE_URL` to the Railway backend URL.
-5. Redeploy the frontend.
-
 ## Common issues
 
 ### `Failed to fetch`
@@ -181,8 +164,3 @@ The PDF is likely scanned or image-only. This app does not currently perform OCR
 ### `The uploaded file could not be read as a valid PDF`
 
 The uploaded file is not a valid PDF or is corrupted.
-
-## Notes
-
-This project is intentionally simple and meant to be easy to understand. It is a good starting point for adding authentication, user accounts, OCR, more document types, or a managed vector database.
-
