@@ -7,6 +7,7 @@ import uuid
 from dotenv import load_dotenv
 from openai import OpenAI
 from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 
 import chromadb
 from chromadb.config import Settings
@@ -297,7 +298,18 @@ async def upload_and_index(file: UploadFile = File(...)):
     except Exception as exc:
         raise HTTPException(status_code=500, detail={"error": f"Failed to save file: {exc}"})
 
-    summary = index_doc_into_chroma(doc_id, saved_path)
+    try:
+        summary = index_doc_into_chroma(doc_id, saved_path)
+    except PdfReadError:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "The uploaded file could not be read as a valid PDF."},
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": f"Failed to process PDF: {exc}"},
+        )
     if "error" in summary:
         raise HTTPException(status_code=400, detail=summary)
 

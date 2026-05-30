@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 async function safeJson(res) {
   const text = await res.text();
@@ -9,18 +9,27 @@ async function safeJson(res) {
   }
 }
 
+function getErrorMessage(data, fallback) {
+  return data?.error || data?.detail?.error || data?.detail || fallback;
+}
+
 export async function uploadAndIndex(file) {
   const form = new FormData();
   form.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/upload-and-index`, {
-    method: "POST",
-    body: form,
-  });
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}/upload-and-index`, {
+      method: "POST",
+      body: form,
+    });
+  } catch (err) {
+    throw new Error(`Upload network request failed: ${err?.message || err}`);
+  }
 
   const data = await safeJson(res);
-  if (!res.ok || data.error) {
-    throw new Error(data.error || `Upload failed (HTTP ${res.status})`);
+  if (!res.ok || data.error || data.detail) {
+    throw new Error(getErrorMessage(data, `Upload failed (HTTP ${res.status})`));
   }
   return data;
 }
@@ -33,8 +42,8 @@ export async function askQuestion({ doc_id, question, top_k = 5 }) {
   });
 
   const data = await safeJson(res);
-  if (!res.ok || data.error) {
-    throw new Error(data.error || `Ask failed (HTTP ${res.status})`);
+  if (!res.ok || data.error || data.detail) {
+    throw new Error(getErrorMessage(data, `Ask failed (HTTP ${res.status})`));
   }
   return data;
 }
@@ -45,8 +54,8 @@ export async function deleteDocument(doc_id) {
   });
 
   const data = await safeJson(res);
-  if (!res.ok || data.error) {
-    throw new Error(data.error || `Delete failed (HTTP ${res.status})`);
+  if (!res.ok || data.error || data.detail) {
+    throw new Error(getErrorMessage(data, `Delete failed (HTTP ${res.status})`));
   }
   return data;
 }
